@@ -1,4 +1,5 @@
 import Foundation
+import TelegramApi
 import UIKit
 import Postbox
 import TelegramCore
@@ -938,6 +939,17 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
         var isPinnedMessages = false
         if case .pinnedMessages = chatPresentationInterfaceState.subject {
             isPinnedMessages = true
+        }
+
+        if messages.count == 1 {
+            let message = messages[0]
+            actions.append(.action(ContextMenuActionItem(text: "Прочитать", icon: { _ in
+                return nil
+            }, action: { _, f in
+                let _ = context.engine.messages.sendReadForMessage(index: message.index).startStandalone()
+                f(.default)
+            })))
+            // actions.append(.separator)
         }
         
         if let starStatus = data.starStatus {

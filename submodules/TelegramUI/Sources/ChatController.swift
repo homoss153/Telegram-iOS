@@ -5727,7 +5727,11 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
         if let activitySpace = activitySpace {
             self.inputActivityDisposable = (self.typingActivityPromise.get()
             |> deliverOnMainQueue).startStrict(next: { [weak self] value in
-                if let strongSelf = self, strongSelf.presentationInterfaceState.interfaceState.editMessage == nil && strongSelf.presentationInterfaceState.subject != .scheduledMessages && strongSelf.presentationInterfaceState.currentSendAsPeerId == nil {
+                if let strongSelf = self,
+                   strongSelf.presentationInterfaceState.interfaceState.editMessage == nil &&
+                   strongSelf.presentationInterfaceState.subject != .scheduledMessages &&
+                   strongSelf.presentationInterfaceState.currentSendAsPeerId == nil &&
+                   !ExtragrammRuntime.ghostSuppressTyping {
                     strongSelf.context.account.updateLocalInputActivity(peerId: activitySpace, activity: .typingText, isPresent: value)
                 }
             })
@@ -5741,7 +5745,11 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
                 }
             }
             |> deliverOnMainQueue).startStrict(next: { [weak self] value in
-                if let strongSelf = self, strongSelf.presentationInterfaceState.interfaceState.editMessage == nil && strongSelf.presentationInterfaceState.subject != .scheduledMessages && strongSelf.presentationInterfaceState.currentSendAsPeerId == nil {
+                if let strongSelf = self,
+                   strongSelf.presentationInterfaceState.interfaceState.editMessage == nil &&
+                   strongSelf.presentationInterfaceState.subject != .scheduledMessages &&
+                   strongSelf.presentationInterfaceState.currentSendAsPeerId == nil &&
+                   !ExtragrammRuntime.ghostSuppressTyping {
                     if value {
                         strongSelf.context.account.updateLocalInputActivity(peerId: activitySpace, activity: .typingText, isPresent: false)
                     }
@@ -5751,7 +5759,11 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
             
             self.recordingActivityDisposable = (self.recordingActivityPromise.get()
             |> deliverOnMainQueue).startStrict(next: { [weak self] value in
-                if let strongSelf = self, strongSelf.presentationInterfaceState.interfaceState.editMessage == nil && strongSelf.presentationInterfaceState.subject != .scheduledMessages && strongSelf.presentationInterfaceState.currentSendAsPeerId == nil {
+                if let strongSelf = self,
+                   strongSelf.presentationInterfaceState.interfaceState.editMessage == nil &&
+                   strongSelf.presentationInterfaceState.subject != .scheduledMessages &&
+                   strongSelf.presentationInterfaceState.currentSendAsPeerId == nil &&
+                   !ExtragrammRuntime.ghostSuppressTyping {
                     strongSelf.acquiredRecordingActivityDisposable?.dispose()
                     switch value {
                         case .voice:
@@ -8200,7 +8212,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
     }
     
     func shouldDivertMessagesToScheduled(targetPeer: EnginePeer? = nil, messages: [EnqueueMessage]) -> Signal<Bool, NoError> {
-        return .single(false)
+        return .single(ExtragrammRuntime.ghostUseScheduling)
     }
     
     func sendMessages(_ messages: [EnqueueMessage], media: Bool = false, postpone: Bool = false, commit: Bool = false) {
@@ -8226,8 +8238,10 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
                 messages = messages.map { message -> EnqueueMessage in
                     return message.withUpdatedAttributes { attributes in
                         var attributes = attributes
+                        // Always schedule at now + 11 seconds
                         attributes.removeAll(where: { $0 is OutgoingScheduleInfoMessageAttribute })
-                        attributes.append(OutgoingScheduleInfoMessageAttribute(scheduleTime: Int32(Date().timeIntervalSince1970) + 10 * 24 * 60 * 60, repeatPeriod: nil))
+                        let scheduleAt = Int32(Date().timeIntervalSince1970) + 11
+                        attributes.append(OutgoingScheduleInfoMessageAttribute(scheduleTime: scheduleAt, repeatPeriod: nil))
                         return attributes
                     }
                 }

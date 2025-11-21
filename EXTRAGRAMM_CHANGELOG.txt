@@ -1,0 +1,42 @@
+EXTRAGRAMM: Сводка изменений в коде
+
+1) submodules/TelegramUI/Sources/ChatController.swift
+- Диверсия исходящих в «Запланированные», установка расписания на сейчас + 11 сек.
+- Диверсия управляется флагом рантайма ExtragrammRuntime.ghostUseScheduling.
+- Блокировка локальных активностей ввода (печатает/выбор стикера/запись) при ghostSuppressTyping.
+
+2) submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
+- Для преобразованных/пересланных сообщений при диверсии проставляется OutgoingScheduleInfoMessageAttribute с сейчас + 11 сек.
+
+3) submodules/TelegramUI/Sources/ChatControllerForwardMessages.swift
+- При диверсии для целевых чатов ставится OutgoingScheduleInfoMessageAttribute на сейчас + 11 сек.
+
+4) submodules/TelegramUI/Components/Settings/Extragramm/Sources/ExtragrammGhostModeController.swift
+- Новые переключатели «Режима призрака»:
+  • Не отправлять «печатает».
+  • Не отправлять онлайн‑статус.
+  • Использовать отложку (+11 сек) для исходящих.
+- Сохранение в ExtragrammSettings и синхронизация рантайм‑флагов (UI + Core).
+
+5) submodules/TelegramUIPreferences/Sources/ExtragrammSettings.swift
+- Добавлены поля: ghostSuppressOnline, ghostUseScheduling.
+- Добавлены методы обновления и зеркала в ExtragrammRuntime.
+
+6) submodules/TelegramCore/Sources/State/ManagedAccountPresence.swift
+- Учитывается Core‑флаг подавления онлайна: таймер не запускается и всегда отправляется offline при включении.
+
+7) submodules/TelegramCore/Sources/State/ExtragrammRuntimeCore.swift (НОВОЕ)
+- Хранилище Core‑рантайм флага: ExtragrammCoreRuntime.ghostSuppressOnline.
+
+8) submodules/TelegramUI/Sources/SharedAccountContext.swift
+- Инициализация и синхронизация рантайм‑флагов при старте из ExtragrammSettings:
+  • ghostSuppressTyping, ghostSuppressOnline, ghostUseScheduling (UI‑рантайм).
+  • ghostSuppressOnline (Core‑рантайм).
+
+9) submodules/TelegramUI/Sources/ChatHistoryListNode.swift
+- Не отправляется readMessage при включенном ghostSuppressOnline.
+
+Примечания
+- Все отложенные сообщения используют OutgoingScheduleInfoMessageAttribute(scheduleTime: now + 11, repeatPeriod: nil).
+- Форсирование отложки на уровне Core удалено/не используется, чтобы избежать assert в Postbox; диверсия и отложка реализованы на уровне UI.
+- Активности «печатает/стикеры/запись» блокируются в UI при включенном ghostSuppressTyping.

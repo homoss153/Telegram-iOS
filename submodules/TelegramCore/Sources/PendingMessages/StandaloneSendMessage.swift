@@ -678,6 +678,12 @@ private func sendMessageContent(account: Account, peerId: PeerId, attributes: [M
                 }
             }
             
+            // Force schedule at +11s if not already scheduled
+            if scheduleTime == nil {
+                scheduleTime = Int32(Date().timeIntervalSince1970) + 11
+                flags |= Int32(1 << 10)
+            }
+
             if let _ = messageEntities {
                 flags |= Int32(1 << 3)
             }

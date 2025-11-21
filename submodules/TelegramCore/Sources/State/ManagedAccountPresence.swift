@@ -44,7 +44,13 @@ private final class AccountPresenceManagerImpl {
     
     private func updatePresence(_ isOnline: Bool) {
         let request: Signal<Api.Bool, MTRpcError>
-        if isOnline {
+        if ExtragrammCoreRuntime.ghostSuppressOnline {
+            // Suppress going online: cancel timer and always report offline
+            self.onlineTimer?.invalidate()
+            self.onlineTimer = nil
+            request = self.network.request(Api.functions.account.updateStatus(offline: .boolTrue))
+            print("ghostSuppressOnline, offline")
+        } else if isOnline {
             let timer = SignalKitTimer(timeout: 30.0, repeat: false, completion: { [weak self] in
                 guard let strongSelf = self else {
                     return

@@ -2,7 +2,19 @@ import Foundation
 import TelegramPresentationData
 import TelegramUIPreferences
 
-public func stringForShortTimestamp(hours: Int32, minutes: Int32, dateTimeFormat: PresentationDateTimeFormat, formatAsPlainText: Bool = false) -> String {
+public func stringForShortTimestamp(
+    hours: Int32,
+    minutes: Int32,
+    seconds: Int32? = nil,
+    dateTimeFormat: PresentationDateTimeFormat,
+    formatAsPlainText: Bool = false,
+    showSeconds: Bool = false
+) -> String {
+    let secPart: String = {
+        guard showSeconds, let s = seconds else { return "" }
+        return String(format: ":%02d", Int(s))
+    }()
+
     switch dateTimeFormat.timeFormat {
     case .regular:
         let hourString: String
@@ -13,32 +25,22 @@ public func stringForShortTimestamp(hours: Int32, minutes: Int32, dateTimeFormat
         } else {
             hourString = "\(hours)"
         }
-        
-        let periodString: String
-        if hours >= 12 {
-            periodString = "PM"
-        } else {
-            periodString = "AM"
-        }
-        
-        let spaceCharacter: String
-        if formatAsPlainText {
-            spaceCharacter = " "
-        } else {
-            spaceCharacter = "\u{00a0}"
-        }
-        
+
+        let periodString = hours >= 12 ? "PM" : "AM"
+        let spaceCharacter = formatAsPlainText ? " " : "\u{00a0}"
+
         if minutes >= 10 {
-            return "\(hourString):\(minutes)\(spaceCharacter)\(periodString)"
+            return "\(hourString):\(minutes)\(secPart)\(spaceCharacter)\(periodString)"
         } else {
-            return "\(hourString):0\(minutes)\(spaceCharacter)\(periodString)"
+            return "\(hourString):0\(minutes)\(secPart)\(spaceCharacter)\(periodString)"
         }
     case .military:
-        return String(format: "%02d:%02d", arguments: [Int(hours), Int(minutes)])
+        return String(format: showSeconds ? "%02d:%02d:%02d" : "%02d:%02d", arguments: [Int(hours), Int(minutes), Int(seconds ?? 0)])
     }
 }
 
-public func stringForMessageTimestamp(timestamp: Int32, dateTimeFormat: PresentationDateTimeFormat, local: Bool = true) -> String {
+
+public func stringForMessageTimestamp(timestamp: Int32, dateTimeFormat: PresentationDateTimeFormat, local: Bool = true, showSeconds: Bool? = nil) -> String {
     var t = Int(timestamp)
     var timeinfo = tm()
     if local {
@@ -46,8 +48,21 @@ public func stringForMessageTimestamp(timestamp: Int32, dateTimeFormat: Presenta
     } else {
         gmtime_r(&t, &timeinfo)
     }
-    
-    return stringForShortTimestamp(hours: timeinfo.tm_hour, minutes: timeinfo.tm_min, dateTimeFormat: dateTimeFormat)
+    let displaySeconds: Bool
+    if let showSeconds = showSeconds {
+        displaySeconds = showSeconds
+    } else {
+        // Prefer runtime flag controlled by preferences
+        displaySeconds = ExtragrammRuntime.timeWithSeconds
+    }
+
+    return stringForShortTimestamp(
+        hours: timeinfo.tm_hour,
+        minutes: timeinfo.tm_min,
+        seconds: Int32(timeinfo.tm_sec),
+        dateTimeFormat: dateTimeFormat,
+        showSeconds: displaySeconds
+    )
 }
 
 public func getDateTimeComponents(timestamp: Int32) -> (day: Int32, month: Int32, year: Int32, hour: Int32, minutes: Int32) {

@@ -43,6 +43,7 @@ private enum ApplicationSpecificSharedDataKeyValues: Int32 {
     case drawingSettings = 19
     case mediaDisplaySettings = 20
     case updateSettings = 21
+    case extragrammSettings = 22
 }
 
 public struct ApplicationSpecificSharedDataKeys {
@@ -68,6 +69,7 @@ public struct ApplicationSpecificSharedDataKeys {
     public static let drawingSettings = applicationSpecificPreferencesKey(ApplicationSpecificSharedDataKeyValues.drawingSettings.rawValue)
     public static let mediaDisplaySettings = applicationSpecificPreferencesKey(ApplicationSpecificSharedDataKeyValues.mediaDisplaySettings.rawValue)
     public static let updateSettings = applicationSpecificPreferencesKey(ApplicationSpecificSharedDataKeyValues.updateSettings.rawValue)
+    public static let extragrammSettings = applicationSpecificSharedDataKey(ApplicationSpecificSharedDataKeyValues.extragrammSettings.rawValue)
 }
 
 private enum ApplicationSpecificItemCacheCollectionIdValues: Int8 {

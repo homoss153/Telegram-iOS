@@ -252,6 +252,8 @@ public final class SharedAccountContextImpl: SharedAccountContext {
     public let currentStickerSettings: Atomic<StickerSettings>
     private var stickerSettingsDisposable: Disposable?
     
+    private var extragrammSettingsDisposable: Disposable?
+    
     private let automaticMediaDownloadSettingsDisposable = MetaDisposable()
     
     private var immediateExperimentalUISettingsValue = Atomic<ExperimentalUISettings>(value: ExperimentalUISettings.defaultSettings)
@@ -477,6 +479,17 @@ public final class SharedAccountContextImpl: SharedAccountContext {
                     let _ = strongSelf.currentStickerSettings.swap(settings)
                 }
             }
+        })
+        
+        // Initialize and keep Extragramm ghost mode flags in sync at app startup
+        self.extragrammSettingsDisposable = (self.accountManager.sharedData(keys: [ApplicationSpecificSharedDataKeys.extragrammSettings])
+        |> deliverOnMainQueue).start(next: { [weak self] sharedData in
+            guard let _ = self else { return }
+            let settings = sharedData.entries[ApplicationSpecificSharedDataKeys.extragrammSettings]?.get(ExtragrammSettings.self) ?? ExtragrammSettings.defaultSettings
+            ExtragrammRuntime.ghostSuppressTyping = settings.ghostSuppressTyping
+            ExtragrammRuntime.ghostSuppressOnline = settings.ghostSuppressOnline
+            ExtragrammRuntime.ghostUseScheduling = settings.ghostUseScheduling
+            ExtragrammCoreRuntime.ghostSuppressOnline = settings.ghostSuppressOnline
         })
         
         let immediateExperimentalUISettingsValue = self.immediateExperimentalUISettingsValue

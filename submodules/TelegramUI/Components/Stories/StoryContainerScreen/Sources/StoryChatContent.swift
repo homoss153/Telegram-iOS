@@ -4,6 +4,7 @@ import Display
 import ComponentFlow
 import SwiftSignalKit
 import AccountContext
+import TelegramUIPreferences
 import TelegramCore
 import Postbox
 import MediaResources
@@ -1128,7 +1129,7 @@ public final class StoryContentContextImpl: StoryContentContext {
     }
     
     public func markAsSeen(id: StoryId) {
-        if !self.context.sharedContext.immediateExperimentalUISettings.skipReadHistory {
+        if !ExtragrammRuntime.ghostSuppressOnline && !self.context.sharedContext.immediateExperimentalUISettings.skipReadHistory {
             let _ = self.context.engine.messages.markStoryAsSeen(peerId: id.peerId, id: id.id, asPinned: false).startStandalone()
         }
     }
@@ -1429,7 +1430,7 @@ public final class SingleStoryContentContextImpl: StoryContentContext {
     
     public func markAsSeen(id: StoryId) {
         if self.readGlobally {
-            if !self.context.sharedContext.immediateExperimentalUISettings.skipReadHistory {
+            if !ExtragrammRuntime.ghostSuppressOnline && !self.context.sharedContext.immediateExperimentalUISettings.skipReadHistory {
                 let _ = self.context.engine.messages.markStoryAsSeen(peerId: id.peerId, id: id.id, asPinned: false).startStandalone()
             }
         }
@@ -1827,7 +1828,7 @@ public final class PeerStoryListContentContextImpl: StoryContentContext {
     }
     
     public func markAsSeen(id: StoryId) {
-        if !self.context.sharedContext.immediateExperimentalUISettings.skipReadHistory {
+        if !ExtragrammRuntime.ghostSuppressOnline && !self.context.sharedContext.immediateExperimentalUISettings.skipReadHistory {
             let _ = self.context.engine.messages.markStoryAsSeen(peerId: id.peerId, id: id.id, asPinned: true).startStandalone()
         }
     }

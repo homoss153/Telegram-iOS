@@ -93,8 +93,8 @@ class BazelCommandLine:
             # https://docs.bazel.build/versions/master/command-line-reference.html
             # Set the number of parallel jobs per module to saturate the available CPU resources.
             #'--swiftcopt=-j{}'.format(os.cpu_count() - 1),
-            '--@build_bazel_rules_swift//swift:copt="-j{}"'.format(os.cpu_count() - 1),
-            '--@build_bazel_rules_swift//swift:copt="-whole-module-optimization"',
+            # '--@build_bazel_rules_swift//swift:copt="-j{}"'.format(os.cpu_count() - 1),
+            # '--@build_bazel_rules_swift//swift:copt="-whole-module-optimization"',
         ]
 
         self.common_release_args = [

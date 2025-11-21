@@ -206,9 +206,11 @@ public extension Peer {
         }
     }
     
+    //TODO: use preferences
     var isPremium: Bool {
         switch self {
         case let user as TelegramUser:
+            // if user.id == 
             return user.flags.contains(.isPremium)
         default:
             return false

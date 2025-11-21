@@ -115,6 +115,7 @@ import GiftViewScreen
 import PeerMessagesMediaPlaylist
 import EdgeEffect
 import Pasteboard
+import Extragramm
 
 public enum PeerInfoAvatarEditingMode {
     case generic
@@ -515,6 +516,7 @@ private enum PeerInfoContextSubject {
 private enum PeerInfoSettingsSection {
     case avatar
     case edit
+    case extragramm
     case proxy
     case stories
     case savedMessages
@@ -930,6 +932,10 @@ private func settingsItems(data: PeerInfoScreenData?, context: AccountContext, p
                 interaction.openSettings(.addAccount)
             }))
         }
+        
+        items[.myProfile]!.append(PeerInfoScreenDisclosureItem(id: -1, text: "Настройки extraGram", icon: nil, action: {
+            interaction.openSettings(.extragramm)
+        }))
         
         items[.myProfile]!.append(PeerInfoScreenDisclosureItem(id: 0, text: presentationData.strings.Settings_MyProfile, icon: PresentationResourcesSettings.myProfile, action: {
             interaction.openSettings(.profile)
@@ -10858,6 +10864,8 @@ final class PeerInfoScreenNode: ViewControllerTracingNode, PeerInfoScreenNodePro
                     }
                 })
             }
+        case .extragramm:
+            push(extragrammController(context: self.context))
         case .passwordSetup:
             DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.6, execute: { [weak self] in
                 guard let self else {
